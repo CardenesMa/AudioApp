@@ -1,16 +1,15 @@
-/*
-  ==============================================================================
 
-	This file contains the startup code for a PIP.
-
-  ==============================================================================
-*/
 
 #include <JuceHeader.h>
 //#include "AudioAppDemo.h"
-#include "MPosDials.h"
-#include "MyMidiClass.h"
-#include "midiTryout.h"
+//#include "MPosDials.h"
+
+#include "Style.h"
+#include "ComponentContainer.h"
+#include "Components/Dial.h"
+#include "Components/Visualizer.h"
+#include "Components/GlobalComponent.h"
+#include "Components/VibratoComponent.h"
 
 class Application : public juce::JUCEApplication
 {
@@ -48,8 +47,9 @@ private:
 #if JUCE_ANDROID || JUCE_IOS
 			setFullScreen(true);
 #else
+			// set this to (true, false) for debugging. otherwise, keep fixed
 			setResizable(true, false);
-			setResizeLimits(300, 250, 10000, 10000);
+			//setResizeLimits(300, 250, 10000, 10000);
 			centreWithSize(getWidth(), getHeight());
 #endif
 

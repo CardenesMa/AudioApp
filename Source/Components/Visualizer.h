@@ -7,7 +7,7 @@ int map(int x, int in_min, int in_max, int out_min, int out_max)
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-class Visualizer : public Component, private MidiInputCallback {
+class Visualizer : public Component {
 public:
 	// make the box and label for seeing the midi devices
 	ComboBox* xAxisChoice;
@@ -49,31 +49,6 @@ public:
 
 	}
 	~Visualizer() override {}
-
-	String getMidiMessageDescripton(const MidiMessage& m) {
-
-		for (int i = 0; i < axes.size(); i++) {
-			ComboBox* ax = axes[i];
-			// make this switch statement go through the list of axis chocice lists
-			switch (ax->getSelectedItemIndex()) {
-
-			case 0:
-				if (m.isController() && m.getControllerNumber() == 101 + i) setCoordinate(m.getControllerValue(), 127, i + 1);
-				break;
-			case 1:
-				if (m.isController() && m.getControllerNumber() == 101 + i) setCoordinate(m.getControllerValue(), 127, i + 1);
-				break;
-			case 2:
-				if (m.isController() && m.getControllerNumber() == 101 + i) setCoordinate(m.getControllerValue(), 127, i + 1);
-				break;
-			case 3:
-				if (m.isController() && m.getControllerNumber() == 101 + i) setCoordinate(127 - m.getControllerValue(), 127, i + 1);
-				break;
-
-			}
-		}
-		repaint();
-	}
 
 	void paint(Graphics& g) override {
 		g.fillAll(Colour(Style::background));
@@ -124,11 +99,7 @@ public:
 		if (axis == 3) z_cor = { 255 - map(value, 0, max_potential_input_value, 0,      255), 0, map(value, 0, max_potential_input_value, 0, 255),  map(value, 0, max_potential_input_value, 2, 50) };
 	}
 
-	void handleIncomingMidiMessage(MidiInput* source, const MidiMessage& message) override
-	{
-		const juce::ScopedValueSetter<bool> scopedInputFlag(isAddingFromMidiInput, true);
-		postMessageToList(message, source->getName());
-	}
+	// THe following is for handling midi messages appropriately
 
 	void postMessageToList(const MidiMessage& message, String& source) {
 		// looks like it creates a new incoming message object and posts it to some board??

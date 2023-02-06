@@ -1,7 +1,7 @@
 #pragma once
 #include "Dial.h"
 
-class VibratoComponent : public Component, private MidiInputCallback, private KeyListener {
+class VibratoComponent : public Component, private KeyListener {
 public:
 	// I'm using these so that if the choices on the global comboboxes are 
 	// related to vibrato, it can be controlled here 
@@ -18,25 +18,32 @@ public:
 	int graph_height = height / 2;
 	int graph_width = width - margin * 2;
 
+	// dials
+	Dial ampDial;
+	Dial freqDial;
 
-	//Dial freqDial;
-	//Slider freqDial;
-
-	//double* freq;
 	int freq = 1;
-	int ampl = 20;
+	int ampl = 16;
 	float oscillations;
 
 	std::vector<ComboBox*> axes;
 
-	VibratoComponent(ComboBox* x, ComboBox* y, ComboBox* z) {
+
+	VibratoComponent(ComboBox* x, ComboBox* y, ComboBox* z) :
+		ampDial("Amplitude", height / 2, 127),
+		freqDial("Frequency", 30, 127)
+	{
 		xAxisChoice = x;
 		yAxisChoice = y;
 		zAxisChoice = z;
 
 		axes = { xAxisChoice, yAxisChoice, zAxisChoice };
 
-		//addAndMakeVisible(freqDial);
+		addAndMakeVisible(ampDial);
+		addAndMakeVisible(freqDial);
+
+		ampDial.dial.onValueChange = [this] {this->ampl = ampDial.dial.getValue(); repaint(); };
+		freqDial.dial.onValueChange = [this] {this->freq = freqDial.dial.getValue(); repaint(); };
 
 
 		setOpaque(true);
@@ -45,30 +52,13 @@ public:
 		setWantsKeyboardFocus(true);
 		addKeyListener(this);
 
-		//for (ComboBox* ax : axes) {
-		//	switch (ax->getSelectedItemIndex()) {
-		//	case 0: // Pitch Bend (see Style.h for reference for all indicides
-		//		handlePitchBend();
-		//	case 1:
-		//		handleCC1();
-		//	}
-		//}
-
-
-
-
-
-
-
 	}
 	~VibratoComponent() override {}
-	String getMidiMessageDescription(const MidiMessage& m) {
 
-		repaint();
-	}
 
 
 	void paint(Graphics& g) override {
+
 		// this line is important since otherwise you can see the trimmed edges of the rectangle
 		g.fillAll(Colour(Style::background));
 
@@ -104,12 +94,9 @@ public:
 
 	}
 	void resized() override {
-		//freqDial.setBounds(100, 150, freqDial.width, freqDial.height);
-	}
-
-	void handleIncomingMidiMessage(MidiInput* source, const MidiMessage& message) override
-	{
-		const juce::ScopedValueSetter<bool> scopedInputFlag(isAddingFromMidiInput, true);
+		int dial_size = width / 5;
+		ampDial.setBounds(width / 4, height / 2 + margin, dial_size, dial_size);
+		freqDial.setBounds(width / 2, height / 2 + margin, dial_size, dial_size);
 	}
 
 
@@ -144,9 +131,13 @@ public:
 	void handleCC01() {}
 	void handleCC70() {}
 	void handleCC74() {}
-	void handleVibratoAmplitude() {
-
+	void handleVibratoAmplitude(int value) {
+		ampl = value;
+		repaint();
 	}
-	void handleVibratoFrequency() {}
+	void handleVibratoFrequency(int value) {
+		freq = value;
+		repaint();
+	}
 
 };

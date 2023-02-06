@@ -17,14 +17,11 @@ public:
 	//==============================================================================
 	Application() = default;
 
-	const juce::String getApplicationName() override { return "MPosDials"; }
+	const juce::String getApplicationName() override { return "Audio VAT"; }
 	const juce::String getApplicationVersion() override { return "1.0.0"; }
 
 	void initialise(const juce::String&) override
 	{
-		//mainWindow.reset (new MainWindow ("AudioAppDemo", new AudioAppDemo, *this));
-	   //mainWindow.reset(new MainWindow("MPosDials", new MPosDials, *this));
-		//mainWindow.reset(new MainWindow("MIDI", new MainContentComponent, *this));
 		mainWindow.reset(new MainWindow("My MIDI", new MainComponent, *this));
 
 	}

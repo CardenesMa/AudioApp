@@ -2,6 +2,7 @@
 
 #include "../Style.h"
 #include "VibratoComponent.h"
+#include "Dial.h"
 
 class GlobalComponent : public Component, private MidiInputCallback {
 public:
@@ -37,7 +38,8 @@ public:
 
 
 	GlobalComponent()
-		:startTime(Time::getMillisecondCounterHiRes() * 0.01) {
+		:startTime(Time::getMillisecondCounterHiRes() * 0.01)
+	{
 		midiInputList.setTextWhenNoChoicesAvailable("Nothing available :(");
 		// styling for the input list
 		midiInputList.setColour(ComboBox::backgroundColourId, Colour(0x3fcbe6ff));
@@ -71,10 +73,10 @@ public:
 			addAndMakeVisible(*i);
 			i->addItemList(axisChoices, 1);
 			// styling of our axes boxes
-			i->setColour(ComboBox::backgroundColourId, Style::accent);
+			i->setColour(ComboBox::backgroundColourId, Style::button);
 			i->setColour(ComboBox::outlineColourId, Style::outline);
 			i->setColour(ComboBox::arrowColourId, Style::text);
-			i->setColour(ComboBox::buttonColourId, Style::button);
+			//i->setColour(ComboBox::buttonColourId, Style::button);
 			i->setColour(ComboBox::textColourId, Style::text);
 
 		}
@@ -94,13 +96,17 @@ public:
 		inputLabel.setText("MIDI Input: ", dontSendNotification);
 		inputLabel.attachToComponent(&midiInputList, true);
 
+		auto labels = { &xLabel, &yLabel, &zLabel, &inputLabel };
+		for (auto i : labels) {
+			i->setColour(ComboBox::outlineColourId, Style::outline);
+			i->setColour(ComboBox::textColourId, Style::text);
+		}
+
 		// == end labels ==
 		// == begin buttons ==
 		addAndMakeVisible(zeroButton);
 		zeroButton.setButtonText("Zero Device");
-		zeroButton.onClick = [this] {ZeroDevice(); };
 		// == end buttons ==
-
 
 	}
 
@@ -138,6 +144,7 @@ public:
 		int z_bt_width = 150;
 		int z_bt_height = 50;
 		zeroButton.setBounds(width - margin - z_bt_width, margin, z_bt_width, z_bt_height);
+
 	}
 
 	void setMidiInput(int index) {
@@ -155,20 +162,30 @@ public:
 		lastInputIndex = index;
 	}
 
-	void handleIncomingMidiMessage(MidiInput* source, const MidiMessage& message) override {
-		ScopedValueSetter<bool> scopedInputFlag(isAddingFromMidiInput, false);
+
+	void zeroDevice() {
+		std::cout << "Device Zeroed";
+		// make the button change colour or something for a moment
 	}
 
-	void ZeroDevice() {
-		printf("Device Zeroed");
-	}
-
-	int getBoxSelectedIndex(char axis) {
+	/*int getBoxSelectedIndex(char axis) {
 		if (axis == 'x') {
 			return x_choice.getSelectedItemIndex();
 		}
+		else if (axis == 'y') {
+			return y_choice.getSelectedItemIndex();
+		}
+		else if (axis == 'z') {
+			return z_choice.getSelectedItemIndex();
+		}
+		else {
+			return -1;
+		}
 
-	}
+	}*/
+
+	void handleIncomingMidiMessage(MidiInput* source, const MidiMessage& message) override {}
+
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlobalComponent)
 
 private:

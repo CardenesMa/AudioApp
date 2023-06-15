@@ -1,7 +1,7 @@
 #pragma once
 #include "Dial.h"
 
-class VibratoComponent : public Component, private KeyListener {
+class Vibrato : public Component, private KeyListener {
 public:
 	// I'm using these so that if the choices on the global comboboxes are 
 	// related to vibrato, it can be controlled here 
@@ -22,14 +22,14 @@ public:
 	Dial ampDial;
 	Dial freqDial;
 
-	int freq = 1;
+	float freq = 1.0;
 	int ampl = 16;
 	float oscillations;
 
 	std::vector<ComboBox*> axes;
 
 
-	VibratoComponent(ComboBox* x, ComboBox* y, ComboBox* z) :
+	Vibrato(ComboBox* x, ComboBox* y, ComboBox* z) :
 		ampDial("Amplitude", height / 2, 127),
 		freqDial("Frequency", 30, 127)
 	{
@@ -53,7 +53,7 @@ public:
 		addKeyListener(this);
 
 	}
-	~VibratoComponent() override {}
+	~Vibrato() override {}
 
 
 
@@ -133,10 +133,14 @@ public:
 	void handleCC74() {}
 	void handleVibratoAmplitude(int value) {
 		ampl = value;
+		ampDial.dial.setValue(value);
 		repaint();
 	}
 	void handleVibratoFrequency(int value) {
-		freq = value;
+		float mapped_val = map(value, 0, 127, 0, 1000) / 100;
+		freq = mapped_val;
+		freqDial.dial.setValue(freq);
+
 		repaint();
 	}
 

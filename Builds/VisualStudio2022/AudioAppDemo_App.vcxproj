@@ -2274,7 +2274,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\Components\Dial.h" />
     <ClInclude Include="..\..\Source\Components\GlobalComponent.h" />
-    <ClInclude Include="..\..\Source\Components\VibratoComponent.h" />
+    <ClInclude Include="..\..\Source\Components\Vibrato.h" />
     <ClInclude Include="..\..\Source\Components\Visualizer.h" />
     <ClInclude Include="..\..\Source\ComponentContainer.h" />
     <ClInclude Include="..\..\..\..\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h" />

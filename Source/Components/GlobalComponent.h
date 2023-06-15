@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Style.h"
-#include "VibratoComponent.h"
 #include "Dial.h"
 
 class GlobalComponent : public Component, private MidiInputCallback {
@@ -10,6 +9,9 @@ public:
 
 	AudioDeviceManager deviceManager;
 	ComboBox midiInputList;
+
+	MidiMessage current_message;
+
 
 	ComboBox x_choice;
 	ComboBox y_choice;
@@ -44,17 +46,18 @@ public:
 		// styling for the input list
 		midiInputList.setColour(ComboBox::backgroundColourId, Colour(0x3fcbe6ff));
 
+		// see what devices are available
 		auto midiInputs = MidiInput::getAvailableDevices();
 
 		StringArray midiInputNames;
 		// add each available device to the dropdown
 		for (MidiDeviceInfo input : midiInputs) midiInputNames.add(input.name);
-
 		midiInputList.addItemList(midiInputNames, 1);
+		// make sure to handle change
 		midiInputList.onChange = [this] {setMidiInput(midiInputList.getSelectedItemIndex()); };
 
 		// use a certain device for the inputs
-		for (auto& input : midiInputs) {
+		for (auto input : midiInputs) {
 			if (deviceManager.isMidiInputDeviceEnabled(input.identifier)) {
 				setMidiInput(midiInputs.indexOf(input));
 				break;
@@ -76,7 +79,6 @@ public:
 			i->setColour(ComboBox::backgroundColourId, Style::button);
 			i->setColour(ComboBox::outlineColourId, Style::outline);
 			i->setColour(ComboBox::arrowColourId, Style::text);
-			//i->setColour(ComboBox::buttonColourId, Style::button);
 			i->setColour(ComboBox::textColourId, Style::text);
 
 		}
@@ -184,7 +186,9 @@ public:
 
 	}*/
 
-	void handleIncomingMidiMessage(MidiInput* source, const MidiMessage& message) override {}
+	void handleIncomingMidiMessage(MidiInput* source, const MidiMessage& message) override {
+		current_message = message;
+	}
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlobalComponent)
 

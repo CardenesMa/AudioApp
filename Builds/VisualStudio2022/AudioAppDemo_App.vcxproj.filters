@@ -5408,7 +5408,7 @@
     <ClInclude Include="..\..\Source\Components\GlobalComponent.h">
       <Filter>AudioAppDemo\Source\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Components\VibratoComponent.h">
+    <ClInclude Include="..\..\Source\Components\Vibrato.h">
       <Filter>AudioAppDemo\Source\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Components\Dial.h">

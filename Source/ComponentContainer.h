@@ -17,12 +17,11 @@
 
 #include "Components/Visualizer.h"
 #include "Components/GlobalComponent.h"
-#include "Components/VibratoComponent.h"
+#include "Components/Vibrato.h"
 #include "Style.h"
-#include <iostream>
 
 
-class MainComponent : public Component, private MidiInputCallback {
+class MainComponent : public Component {
 public:
 	// sizing options
 	int width = Style::MainWindowSize[0];
@@ -32,15 +31,15 @@ public:
 	// the box which contains the visualizer in it 
 	// the box which has all the important dropdowns n stuff in it
 	GlobalComponent glob;
-	Visualizer viz;
-	VibratoComponent vib;
+	Visualizer VisualizerComponent;
+	Vibrato VibratoComponent;
 
-	AudioDeviceManager* deviceManager;
 
-	bool isAddingFromMidiInput;
-
-	ComboBox* xCombo;
-
+	// 
+	AudioDeviceManager* deviceManager = &glob.deviceManager;
+	// since the midi listener is in the glob object, let's point to the message so it is continuously updated
+	MidiMessage* recieved_midi = &(glob.current_message);
+	// store the axes for easy use
 	std::vector<ComboBox*> axes = { &glob.x_choice, &glob.y_choice, &glob.z_choice };
 
 	//====== the following are variables for making things look nice =====
@@ -49,19 +48,17 @@ public:
 
 	Array<MidiDeviceInfo> midiOutputs = MidiOutput::getAvailableDevices();
 	std::unique_ptr<MidiOutput> output;
+
+
 	MainComponent() :
-		viz(&glob.x_choice, &glob.y_choice, &glob.z_choice),
-		vib(&glob.x_choice, &glob.y_choice, &glob.z_choice)
+		VisualizerComponent(&glob.x_choice, &glob.y_choice, &glob.z_choice),
+		VibratoComponent(&glob.x_choice, &glob.y_choice, &glob.z_choice)
 	{
 
-		setOpaque(true);
-
-		xCombo = &glob.x_choice;
-		deviceManager = &glob.deviceManager;
 
 		addAndMakeVisible(glob);
-		addAndMakeVisible(viz);
-		addAndMakeVisible(vib);
+		addAndMakeVisible(VisualizerComponent);
+		addAndMakeVisible(VibratoComponent);
 
 		setSize(width, height);
 
@@ -82,7 +79,9 @@ public:
 	}
 	void paint(Graphics& g) override {
 		g.fillAll(Style::background);
-		//handleComboBoxOption(xCombo
+
+
+		handleMidiMessage(*recieved_midi);
 
 
 	}
@@ -91,26 +90,14 @@ public:
 		// top left aligned
 		glob.setBounds(padding, padding, glob.width, glob.height);
 		// aligned with relation to glob
-		vib.setBounds(padding, glob.height + padding + component_spacing, vib.width, vib.height);
+		VibratoComponent.setBounds(padding, glob.height + padding + component_spacing, VibratoComponent.width, VibratoComponent.height);
 
-		viz.setBounds(padding * 2 + glob.width, padding, viz.width, viz.height);
+		VisualizerComponent.setBounds(padding * 2 + glob.width, padding, VisualizerComponent.width, VisualizerComponent.height);
 
 		Style::update(getWidth(), getHeight(), 40);
 	}
 
 
-
-	void handleVibratoFrequency() {}
-
-	void handleIncomingMidiMessage(MidiInput* source, const MidiMessage& message) override {
-		ScopedValueSetter<bool> scopedInputFlag(isAddingFromMidiInput, false);
-		// this is for future debugging :: 
-		// previously existed in Visualizer.h, but now refactoreed
-		viz.postMessageToList(message, source->getName());
-
-		handleMidiMessage(message);
-
-	}
 
 	void handleMidiMessage(const MidiMessage& m) {
 		// OK THIS IS SUPER JENK -- 
@@ -123,12 +110,14 @@ public:
 		for (int i = 0; i < axes.size(); i++) {
 			ComboBox* ax = axes[i];
 
-			// visualize the coordinate with respect to the 
-			viz.setCoordinate(value, 127, i + 1);
 
 			// do all the conditionals here so that I don't have to check in each case
-			bool matches_controller_number = m.getControllerNumber() == 101 + i;
+			bool matches_controller_number = m.getControllerNumber() == 103 + i;
 			if (!matches_controller_number) continue;
+
+			// visualize the coordinate with respect to the axis
+			VisualizerComponent.setCoordinate(value, 127, 1 + m.getControllerNumber() - 103);
+
 
 			switch (ax->getSelectedItemIndex()) {
 			case 0: handlePitchBend(value); break;
@@ -141,6 +130,8 @@ public:
 				handleOtherwise(value);
 			}
 		}
+		//since this method is dependent upon painting being done, let it be circular so that it continues to execute itself when ready
+		repaint();
 	}
 
 	bool sendcc(uint8_t ccnumber, uint8_t value) {
@@ -185,10 +176,13 @@ private:
 	void handleVibratoAmplitude(int value) {
 		// create an LFO or sinusodal method to handle this with pitch bend so that works with 
 		// Digital instruments that can't handle the vibrato information
-		sendcc(0x01, value);
+		//sendcc(0x01, value);
+		VibratoComponent.handleVibratoAmplitude(value);
 	}
 
-	void handleVibratoFrequency(int value) {}
+	void handleVibratoFrequency(int value) {
+		VibratoComponent.handleVibratoFrequency(value);
+	}
 
 	void handleOtherwise(int value) {}
 
